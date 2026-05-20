@@ -1,6 +1,8 @@
 package br.com.renan.todolistapp.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -11,10 +13,22 @@ import br.com.renan.todolistapp.viewmodel.TaskViewModel
 fun TaskDetailScreen(
     taskId: Int,
     viewModel: TaskViewModel,
-    onBackClick: () -> Unit // Ação para o botão de voltar
+    onBackClick: () -> Unit
 ) {
-    // Coleta a tarefa específica do banco de dados
+    // Coleta a tarefa original do banco
     val task by viewModel.getTaskById(taskId).collectAsState(initial = null)
+
+    // Estados locais para controlar o que está sendo digitado
+    var titleState by remember { mutableStateOf("") }
+    var descriptionState by remember { mutableStateOf("") }
+
+    // Quando a tarefa carrega do banco, preenche os campos de texto
+    LaunchedEffect(task) {
+        task?.let {
+            titleState = it.title
+            descriptionState = it.description
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -22,46 +36,81 @@ fun TaskDetailScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "Task Details",
+            text = "Edit Task",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // Verifica se a tarefa já foi carregada do banco de dados
         if (task != null) {
-            Text(
-                text = "Title:",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = task!!.title,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
+            // Campo editável do Título
+            OutlinedTextField(
+                value = titleState,
+                onValueChange = { titleState = it },
+                label = { Text("Title") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             )
 
-            Text(
-                text = "Status:",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+            // Campo editável da Descrição
+            OutlinedTextField(
+                value = descriptionState,
+                onValueChange = { descriptionState = it },
+                label = { Text("Description") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                minLines = 4
             )
-            Text(
-                text = if (task!!.isCompleted) "Completed" else "Pending",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
+
+            // Linha com os botões Salvar e Deletar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Botão Salvar
+                Button(
+                    onClick = {
+                        task?.let {
+                            // Salva no Room usando a ViewModel e volta pra lista
+                            viewModel.updateTask(it.copy(title = titleState, description = descriptionState))
+                            onBackClick()
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Save")
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Botão Deletar
+                Button(
+                    onClick = {
+                        task?.let {
+                            viewModel.deleteTask(it)
+                            onBackClick()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Delete")
+                }
+            }
         } else {
             Text("Loading task details...")
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Botão para retornar à tela principal
-        Button(
+        // Botão Cancelar
+        OutlinedButton(
             onClick = onBackClick,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Back")
+            Text("Cancel")
         }
     }
 }
