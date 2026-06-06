@@ -20,6 +20,7 @@ import br.com.renan.todolistapp.ui.TaskDetailScreen
 import br.com.renan.todolistapp.ui.TaskListScreen
 import br.com.renan.todolistapp.ui.theme.ToDoListAppTheme
 import br.com.renan.todolistapp.viewmodel.TaskViewModel
+import androidx.compose.foundation.layout.safeDrawingPadding
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +28,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ToDoListAppTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().safeDrawingPadding(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     // Inicializa o banco de dados/DAO
