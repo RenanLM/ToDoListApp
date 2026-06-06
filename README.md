@@ -5,6 +5,8 @@ Capacita Brasil Residência em TIC 20.
 Trata-se de um aplicativo de Lista de Tarefas (ToDo List) construído com os padrões modernos de 
 desenvolvimento nativo exigidos na formação.
 
+Data de entrega: 06/06/2026
+
 ## ✨ Funcionalidades Principais
 * **Gerenciamento Completo (CRUD):** Criação, visualização, edição (com título e descrição) e 
 exclusão de tarefas.
