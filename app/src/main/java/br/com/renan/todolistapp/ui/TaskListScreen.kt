@@ -1,15 +1,19 @@
 package br.com.renan.todolistapp.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import br.com.renan.todolistapp.data.Task
 import br.com.renan.todolistapp.viewmodel.TaskFilter
@@ -21,7 +25,6 @@ fun TaskListScreen(
     viewModel: TaskViewModel,
     onTaskClick: (Int) -> Unit
 ) {
-    // Coleta a lista filtrada e também os estados de pesquisa e filtro
     val tasks by viewModel.tasks.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val currentFilter by viewModel.currentFilter.collectAsState()
@@ -39,7 +42,6 @@ fun TaskListScreen(
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Linha: Adicionar nova tarefa
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -65,7 +67,6 @@ fun TaskListScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Barra de Pesquisa
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { viewModel.updateSearchQuery(it) },
@@ -77,7 +78,6 @@ fun TaskListScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Filtros de Status
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -101,51 +101,94 @@ fun TaskListScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Lista
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(tasks) { task ->
+            // Usamos o ID da tarefa como 'key' para o Compose animar corretamente as exclusões
+            items(items = tasks, key = { it.id }) { task ->
                 TaskItem(
                     task = task,
                     onCheckedChange = { isChecked ->
                         viewModel.updateTask(task.copy(isCompleted = isChecked))
                     },
-                    onClick = { onTaskClick(task.id) }
+                    onClick = { onTaskClick(task.id) },
+                    onDelete = { viewModel.deleteTask(task) } // Passamos a ação de deletar aqui
                 )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskItem(
     task: Task,
     onCheckedChange: (Boolean) -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { dismissValue ->
+            if (dismissValue == SwipeToDismissBoxValue.StartToEnd) {
+                onDelete()
+                true
+            } else {
+                false
+            }
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = true,
+        enableDismissFromEndToStart = false,
+        backgroundContent = {
+            val color by animateColorAsState(
+                targetValue = if (dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.errorContainer
+                }, label = "color"
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color, shape = CardDefaults.shape)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete task",
+                    tint = MaterialTheme.colorScheme.onError
+                )
+            }
+        }
     ) {
-        Row(
+        Card(
             modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .clickable { onClick() },
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            Checkbox(
-                checked = task.isCompleted,
-                onCheckedChange = onCheckedChange
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = task.title,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Row(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = task.isCompleted,
+                    onCheckedChange = onCheckedChange
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = task.title,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
         }
     }
 }
