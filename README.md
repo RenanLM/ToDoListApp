@@ -1,4 +1,4 @@
-# ToDoList App - Projeto Final Android
+# ToDoList App - Projeto Final Android Intermediário
 
 Este projeto é a entrega final do módulo intermediário da trilha de Desenvolvimento Android -
 Capacita Brasil Residência em TIC 20.
