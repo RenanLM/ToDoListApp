@@ -7,6 +7,10 @@ desenvolvimento nativo exigidos na formação.
 
 Data de entrega: 06/06/2026
 
+<p align="center">
+  <img src="docs/ToDoList.gif" width="250"  alt=""/>
+</p>
+
 ## ✨ Funcionalidades Principais
 * **Gerenciamento Completo (CRUD):** Criação, visualização, edição (com título e descrição) e 
 exclusão de tarefas.
